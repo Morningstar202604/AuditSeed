@@ -1,0 +1,74 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install pytest (dev only; runtime is stdlib)
+        run: python -m pip install pytest
+
+      - name: Syntax check (compileall, zero-warning posture)
+        run: python -m compileall -q server hooks bin skills tests
+
+      - name: Plugin manifests are valid JSON
+        run: |
+          python -m json.tool plugin.json > /dev/null
+          python -m json.tool mcp.json > /dev/null
+          python -m json.tool hooks/hooks.json > /dev/null
+
+      - name: Tamper drill (real bytes, real chain)
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os, subprocess, sys, tempfile
+          sys.path.insert(0, "server")
+          from engine.chainstore import ChainStore
+
+          with tempfile.TemporaryDirectory() as tmp:
+              repo = os.path.join(tmp, "repo")
+              os.makedirs(repo)
+              root = os.path.join(tmp, "storage")
+              store = ChainStore(repo, root=root)
+              store.begin_task("drill", "tamper drill: verify must catch byte edits")
+              store.record_event("file_change", {"path": "a.txt", "op": "modify"})
+              store.finish_task("drill", "merged")
+              assert store.verify()["ok"]
+              raw = open(store.chain_path, "rb").read()
+              assert b"tamper drill" in raw
+              open(store.chain_path, "wb").write(raw.replace(b"tamper drill", b"TAMPERED!!", 1))
+              v = store.verify()
+              assert not v["ok"], "tamper drill failed: verify accepted edited chain"
+              assert any("hash mismatch" in m for _, m in v["problems"])
+              print("tamper drill OK: edited chain detected at", v["problems"][0])
+          PY
+
+      - name: Test suite
+        run: python -m pytest tests/ -q
+
+  gate-drill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Gate exits non-zero on missing task
+        run: |
+          python bin/auditseed.py gate --repo . --task no-such-task && exit 1 || test $? -eq 1

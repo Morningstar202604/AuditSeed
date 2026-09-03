@@ -1,0 +1,8 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "auditseed",
+  "version": "0.0.1",
+  "description": "Tamper-evident audit trail for AI coding agents: the client hook captures every file change and command, the agent declares the why before acting, and a SHA-256 hash chain makes the history verifiable and exportable as a changeset report with CI gate support. The why is declared, the what is observed, the evidence is not editable.",
+  "license": "PolyForm-NC-1.0.0",
+  "repository": "https://github.com/Morningstar202604/AuditSeed"
+}

@@ -1,0 +1,12 @@
+[project]
+name = "auditseed"
+version = "0.0.1"
+description = "Tamper-evident audit trail for AI coding agents (runtime is zero-dependency stdlib; pytest is dev-only)"
+requires-python = ">=3.9"
+license = { text = "PolyForm-NC-1.0.0" }
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
