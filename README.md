@@ -11,7 +11,7 @@ the whole history lives in a SHA-256 hash chain you can verify and export
 as a changeset report.
 
 [![License](https://img.shields.io/badge/license-PolyForm_NC_1.0.0-purple)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.0.1-blue)]()
+[![Version](https://img.shields.io/badge/version-0.0.1-blue)](CHANGELOG.md)
 [![Platforms](https://img.shields.io/badge/platform-Cursor%20%7C%20VS%20Code%20%7C%20Claude%20Code%20%7C%20Copilot-blue)](https://agent-plugins.org)
 
 English · 中文 docs inside ([DESIGN.md](docs/DESIGN.md))
